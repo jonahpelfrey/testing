@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Building executable..."
+g++ -o moc moc.cpp -Wall -lpthread
