@@ -64,8 +64,10 @@ static char* msg = "|1111111111|\n";
 /*******************************************************************************
  * 
  ******************************************************************************/
-void openClientSocket()
+bool openClientSocket()
 {
+    bool retVal = true;
+
     int portno;
     struct sockaddr_in serv_addr;
     struct hostent* server;
@@ -78,7 +80,7 @@ void openClientSocket()
     if(client_fd < 0)
     {
         printf("Error opening socket\n");
-        exit(1);
+        retVal = false;
     }
 
     //Check to see if the server exists
@@ -86,7 +88,7 @@ void openClientSocket()
     if( NULL == server )
     {
         printf("Error, no such host\n");
-        exit(1);
+        retVal = false;
     }
 
     //Zero out the server address structure
@@ -102,9 +104,12 @@ void openClientSocket()
     if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
     {
         printf("Error connecting to server\n");
-        exit(1);
+        retVal = false;
     }
+
     printf("Connected to server\n");
+
+    return retVal;
 }
  /*******************************************************************************
  * Thread acting as main thread from arm_main.cpp
@@ -112,8 +117,6 @@ void openClientSocket()
 void* MainThreadProcess(void *pParam)
 {
     int n;
-
-    openClientSocket();
 
 	PTOKEN pMainToken = (PTOKEN)pParam;
 	TIMESPEC ts_wait;
@@ -126,18 +129,23 @@ void* MainThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
 
-    while(runClient)
+    if( openClientSocket() )
     {
-        n = write(client_fd, msg, strlen(msg));
-
-        if(n < 0)
+        while(runClient)
         {
-            printf("Error writing to socket\n");
-            exit(1);
-        }
+            n = write(client_fd, msg, strlen(msg));
 
-        usleep(40);
+            if(n < 0)
+            {
+                printf("Error writing to socket\n");
+                exit(1);
+            }
+
+            usleep(40);
+        }
     }
+
+    
     printf("Ending client thread\n");
 
 }
