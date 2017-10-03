@@ -68,7 +68,7 @@ socklen_t           clilen_dat;
  ******************************************************************************/
 void connectToServer()
 {
-    int portno, n;
+    int portno;
 
     //Grab the port number for the client to test
     portno = portNumber;
@@ -112,6 +112,7 @@ void connectToServer()
 void* MainThreadProcess(void *pParam)
 {
     bool runTest = true;
+    int n;
 
     connectToServer();
 
