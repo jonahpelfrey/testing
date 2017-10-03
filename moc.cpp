@@ -66,11 +66,11 @@ socklen_t           clilen_dat;
  ******************************************************************************/
  bool initializeClientSocket()
  {
-    bool retVal = true;
-
     int portno, n;
     struct sockaddr_in serv_addr;
     struct hostent* server;
+    char* msg = "This is a message from the client\n";
+    char buffer[256];
 
     //Grab the port number for the client to bind to
     portno = portNumber;
@@ -80,7 +80,7 @@ socklen_t           clilen_dat;
     if(client_fd < 0)
     {
         printf("Error opening socket\n");
-        retVal = false;
+        exit(1);
     }
 
     //Check to see if the server exists
@@ -88,7 +88,7 @@ socklen_t           clilen_dat;
     if( NULL == server )
     {
         printf("Error, no such host\n");
-        retVal = false;
+        exit(1);
     }
 
     //Zero out the server address structure
@@ -104,10 +104,9 @@ socklen_t           clilen_dat;
     if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
     {
         printf("Error connecting to server\n");
-        retVal = false;
+        exit(1);
     }
 
-    return retVal;
  }
 
  /*******************************************************************************
@@ -116,6 +115,47 @@ socklen_t           clilen_dat;
 void* MainThreadProcess(void *pParam)
 {
     bool runTest = true;
+
+    int portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent* server;
+    char* msg = "This is a message from the client\n";
+    char buffer[256];
+
+    //Grab the port number for the client to bind to
+    portno = portNumber;
+
+    //Attempt to open the socket
+    client_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(client_fd < 0)
+    {
+        printf("Error opening socket\n");
+        exit(1);
+    }
+
+    //Check to see if the server exists
+    server = gethostbyname("localhost");
+    if( NULL == server )
+    {
+        printf("Error, no such host\n");
+        exit(1);
+    }
+
+    //Zero out the server address structure
+    bzero( (char*)&serv_addr, sizeof(serv_addr) );
+
+    //Populate server address structure
+    serv_addr.sin_family = AF_INET;
+    bcopy( (char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+
+    //Attempt to connect to the server
+    printf("Attempting to connect...");
+    if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
+    {
+        printf("Error connecting to server\n");
+        exit(1);
+    }
 
 	PTOKEN pMainToken = (PTOKEN)pParam;
 	TIMESPEC ts_wait;
@@ -128,7 +168,20 @@ void* MainThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
 
-    initializeClientSocket();
+    while(1)
+    {
+        n = write(client_fd, msg, strlen(msg));
+        if(n < 0)
+        {
+            printf("Error writing to socket\n");
+            exit(1);
+        }
+
+        //Zero out the buffer for reading
+        bzero(buffer, 256);
+
+        sleep(1);
+    }
 
 }
 
@@ -234,6 +287,8 @@ void* ServerThreadProcess(void *pParam)
         if(n < 0) printf("Error reading from socket\n");
 
         printf("Here is the message: %s\n", buffer);
+
+        sleep(1);
     }
 
     close(sockfd);
