@@ -55,6 +55,7 @@ static int PerProcessWrites = 0;
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 static int ServerProcessReads = 0;
+static char* ServerBuffer[2048];
 
 static int portNumber = 5150;
 static int client_fd = -1;
@@ -62,8 +63,8 @@ static int client_fd = -1;
 static bool runServer = true;
 static bool runClient = true;
 
-static char* msgA = "|1111111111111|\n";
-static char* msgB = "|0000000000000|\n";
+static const char msgA[16] = "|1111111111111|\n";
+static const char msgB[16] = "|0000000000000|\n";
 
 static const int MSG_LEN = 16;
 
@@ -84,6 +85,12 @@ static const int MSG_LEN = 16;
     }
 
     //Check validity of server buffer
+    char dest[16];
+    for(int i = 0; i < 2048; i+=16)
+    {
+        memcpy(dest, &ServerBuffer[i], 16);
+        printf("Dest: %s\n", dest);
+    }
 
     return retVal;
  }
@@ -255,7 +262,6 @@ void* ServerThreadProcess(void *pParam)
     //New FD is waiting for a client connection
     printf("Waiting to accept...\n");
     newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
-    printf("Wait hasn't blocked\n");
 
     if(newsockfd < 0)
     {
@@ -282,6 +288,8 @@ void* ServerThreadProcess(void *pParam)
         usleep(40);
     }
     printf("Ending server thread\n");
+    printf("Starting validation...\n");
+    validateBuffer();
 
     close(sockfd);
 }
