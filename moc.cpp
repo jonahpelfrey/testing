@@ -55,7 +55,7 @@ static int PerProcessWrites = 0;
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 static int ServerProcessReads = 0;
-static char* ServerBuffer[2048];
+static char ServerBuffer[2048];
 
 static int portNumber = 5150;
 static int client_fd = -1;
@@ -167,7 +167,7 @@ void* MainThreadProcess(void *pParam)
     {
         while(runClient)
         {
-            n = write(client_fd, msgA, strlen(msg));
+            n = write(client_fd, msgA, strlen(msgA));
 
             if(n < 0)
             {
@@ -276,7 +276,8 @@ void* ServerThreadProcess(void *pParam)
         int n;
         char buffer[256];
 
-        n = read(newsockfd, buffer, 255);
+        n = read(newsockfd, buffer, 16);
+        memcpy(ServerBuffer, buffer, 16);
 
         if(n < 0)
         {
