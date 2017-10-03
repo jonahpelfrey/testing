@@ -17,6 +17,7 @@
 #include <fstream>
 
 #define READ_TIMEOUT_SECS 10
+
 using namespace std;
 
 /*******************************************************************************
@@ -62,15 +63,10 @@ struct sockaddr_in serv_addr;
 struct hostent* server;
 char* msg = "This is a message from the client\n";
 
-int                 listenfd_cmd = -1, connfd_cmd = -1;
-struct sockaddr_in  servaddr_cmd, cliaddr_cmd;
-socklen_t           clilen_cmd;
-socklen_t           clilen_dat;
-
 /*******************************************************************************
  * 
  ******************************************************************************/
-void connectToServer()
+void openClientFd()
 {
     int portno;
 
@@ -117,7 +113,7 @@ void* MainThreadProcess(void *pParam)
 {
     int n;
 
-    connectToServer();
+    openClientFd();
 
 	PTOKEN pMainToken = (PTOKEN)pParam;
 	TIMESPEC ts_wait;
@@ -133,6 +129,7 @@ void* MainThreadProcess(void *pParam)
     while(runClient)
     {
         n = write(client_fd, msg, strlen(msg));
+
         if(n < 0)
         {
             printf("Error writing to socket\n");
@@ -326,13 +323,13 @@ main()
     {
         if(0x0a == getchar() )
         {
-            printf("End of main loop");
             runServer = false;
             runClient = false;
             break;
         }
     }
     sleep(2);
+    printf("End of main thread\n");
 
     return 0;
 
