@@ -46,12 +46,15 @@ static BYTE serverThreadData[1000];
 
 static PTOKEN pMainToken;
 static pthread_t MainThreadId;
+static int MainProcessWrites = 0;
 
 static PTOKEN pPerToken;
 static pthread_t PerThreadId;
+static int PerProcessWrites = 0;
 
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
+static int ServerProcessReads = 0;
 
 static int portNumber = 5150;
 static int client_fd = -1;
@@ -59,7 +62,31 @@ static int client_fd = -1;
 static bool runServer = true;
 static bool runClient = true;
 
-static char* msg = "|1111111111|\n";
+static char* msgA = "|1111111111111|\n";
+static char* msgB = "|0000000000000|\n";
+
+static const int MSG_LEN = 16;
+
+/*******************************************************************************
+ * 
+ ******************************************************************************/
+ bool validateBuffer()
+ {
+    bool retVal = true;
+
+    int totalWrites = MainProcessWrites + PerProcessWrites;
+
+    //Check for missed reads or writes
+    if(totalWrites != ServerProcessReads)
+    {
+        retVal = false;
+        printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
+    }
+
+    //Check validity of server buffer
+
+    return retVal;
+ }
 
 /*******************************************************************************
  * 
@@ -140,7 +167,7 @@ void* MainThreadProcess(void *pParam)
                 printf("Error writing to socket\n");
                 exit(1);
             }
-
+            MainProcessWrites++;
             usleep(40);
         }
     }
@@ -245,10 +272,13 @@ void* ServerThreadProcess(void *pParam)
 
         n = read(newsockfd, buffer, 255);
 
-        if(n < 0) printf("Error reading from socket\n");
+        if(n < 0)
+        {
+            printf("Error reading from socket\n");
+        } 
 
         printf("Here is the message: %s\n", buffer);
-
+        ServerProcessReads++;
         usleep(40);
     }
     printf("Ending server thread\n");
