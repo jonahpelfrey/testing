@@ -256,9 +256,9 @@ bool initializeSockets()
 /*******************************************************************************
  * 
  ******************************************************************************/
-bool initializeTestThreads()
+void initializeTestThreads()
 {
-    bool retVal = true;
+
 
 	pMainToken = (PTOKEN)malloc(sizeof(TOKEN));
 	pPerToken = (PTOKEN)malloc(sizeof(TOKEN));
@@ -268,11 +268,11 @@ bool initializeTestThreads()
 	// sem_init(&pPerToken->semStart, 0, 0);
     sem_init(&pServerToken->semStart, 0, 0);
 
-	pthread_create(&MainThreadId, NULL, MainThreadProcess, (void*)pMainToken);
+        //pthread_create(&MainThreadId, NULL, MainThreadProcess, (void*)pMainToken);
 	// pthread_create(&PerThreadId, NULL, PerThreadProcess, (void*)pPerToken);
     pthread_create(&ServerThreadId, NULL, ServerThreadProcess, (void*)pServerToken);
 
-    return retVal;
+
 }
 
 /*******************************************************************************
@@ -283,7 +283,7 @@ void startTestThreads()
     sem_post( &(pServerToken->semStart) );
     sleep(3);
 
-	sem_post( &(pMainToken->semStart) );
+        //sem_post( &(pMainToken->semStart) );
 	// sem_post( &(pPerToken->semStart) );
 }
 
@@ -307,11 +307,7 @@ void populateArrays()
 int
 main()
 {
-    if(!initializeTestThreads)
-    {
-        printf("Error initializing threads\n");
-        exit(1);
-    }
+    initializeTestThreads();
 
     sleep(1);
 
