@@ -60,7 +60,56 @@ struct sockaddr_in  servaddr_cmd, cliaddr_cmd;
 socklen_t           clilen_cmd;
 socklen_t           clilen_dat;
 
+
 /*******************************************************************************
+ *
+ ******************************************************************************/
+ bool initializeClientSocket()
+ {
+    bool retVal = true;
+
+    int portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent* server;
+
+    //Grab the port number for the client to bind to
+    portno = portNumber;
+
+    //Attempt to open the socket
+    client_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(client_fd < 0)
+    {
+        printf("Error opening socket\n");
+        retVal = false;
+    }
+
+    //Check to see if the server exists
+    server = gethostbyname("localhost");
+    if( NULL == server )
+    {
+        printf("Error, no such host\n");
+        retVal = false;
+    }
+
+    //Zero out the server address structure
+    bzero( (char*)&serv_addr, sizeof(serv_addr) );
+
+    //Populate server address structure
+    serv_addr.sin_family = AF_INET;
+    bcopy( (char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+
+    //Attempt to connect to the server
+    if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
+    {
+        printf("Error connecting to server\n");
+        retVal = false;
+    }
+
+    return retVal;
+ }
+
+ /*******************************************************************************
  * Thread acting as main thread from arm_main.cpp
  ******************************************************************************/
 void* MainThreadProcess(void *pParam)
@@ -72,7 +121,7 @@ void* MainThreadProcess(void *pParam)
 	TIMESPEC ts_sleep = {0*MSEC};
 	int rc = 0;
 
-    if(!intializeClientSocket)
+    if(!initializeClientSocket)
     {
         printf("Error initializing client socket\n");
         exit(1);
@@ -186,53 +235,7 @@ void* ServerThreadProcess(void *pParam)
     close(sockfd);
 }
 
-/*******************************************************************************
- * 
- ******************************************************************************/
- bool intializeClientSocket()
- {
-    bool retVal = true;
 
-    int portno, n;
-    struct sockaddr_in serv_addr;
-    struct hostent* server;
-
-    //Grab the port number for the client to bind to
-    portno = portNumber;
-
-    //Attempt to open the socket
-    client_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(client_fd < 0)
-    {
-        printf("Error opening socket\n");
-        retVal = false;
-    }
-
-    //Check to see if the server exists
-    server = gethostbyname("localhost");
-    if( NULL == server )
-    {
-        printf("Error, no such host\n");
-        retVal = false;
-    }
-
-    //Zero out the server address structure
-    bzero( (char*)&serv_addr, sizeof(serv_addr) );
-
-    //Populate server address structure
-    serv_addr.sin_family = AF_INET;
-    bcopy( (char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(portno);
-
-    //Attempt to connect to the server
-    if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
-    {
-        printf("Error connecting to server\n");
-        retVal = false;
-    }
-
-    return retVal;
- }
 
 /*******************************************************************************
  * 
