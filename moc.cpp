@@ -167,7 +167,7 @@ void* MainThreadProcess(void *pParam)
     {
         while(runClient)
         {
-            n = write(client_fd, msg, strlen(msg));
+            n = write(client_fd, msgA, strlen(msg));
 
             if(n < 0)
             {
