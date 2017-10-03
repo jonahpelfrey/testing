@@ -332,6 +332,7 @@ main()
             break;
         }
     }
+    sleep(2);
 
     return 0;
 
