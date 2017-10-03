@@ -9,6 +9,10 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <netinet/in.h>
 #include <fstream>
 
 #define READ_TIMEOUT_SECS 10
@@ -46,6 +50,8 @@ static pthread_t PerThreadId;
 
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
+
+static int portNumber = 5150;
 
 int                 listenfd_cmd = -1, connfd_cmd = -1;
 struct sockaddr_in  servaddr_cmd, cliaddr_cmd;
@@ -142,22 +148,136 @@ void* ServerThreadProcess(void *pParam)
 {
     bool runTest = true;
 
+    //Thread Params
     PTOKEN pPerToken = (PTOKEN)pParam;
     TIMESPEC ts_wait;
     TIMESPEC ts_sleep = {0*MSEC};
     int rc = 0;
 
+    //Socket Params
+    int sockfd, newsockfd, portno, pid;
+    socklen_t clilen;
+    struct sockaddr_in serv_addr, cli_addr;
+
+    //Establish port number
+    portno = portNumber;
+
+    //Attempt to open socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0)
+    {
+        printf("Error opening socket\n");
+        exit(1);
+    }
+
+    //Zero out the server address structure
+    bzero( (char*)&serv_addr, sizeof(serv_addr) );
+
+    //Populate the address structure
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+
+    //Attempt to bind socket
+    if( bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        printf("Error binding socket\n");
+        exit(1);
+    }
+
+    //Listen for connections, allow up to 5 backlogged connections
+    listen(sockfd, 5);
+    clilen = sizeof(cli_addr);
+
+    //Time Structs
     clock_gettime(CLOCK_REALTIME, &ts_wait);
     ts_wait.tv_sec += 10;
     ts_wait.tv_nsec += (0*MSEC);
 
+    //Wait for start semaphore to be posted
     rc = sem_timedwait( &(pServerToken->semStart), &ts_wait);
+
+    //New FD is waiting for a client connection
+    newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
+    if(newsockfd < 0)
+    {
+        printf("Error on accept\n");
+        exit(1);
+    }
 
     while( runTest )
     {
+        int n;
+        char buffer[256];
+
+        n = read(newsockfd, buffer, 255);
+
+        if(n < 0) printf("Error reading from socket\n");
+
+        printf("Here is the message: %s\n", buffer);
+
 
     }
+
+    close(sockfd);
 }
+
+/*******************************************************************************
+ * 
+ ******************************************************************************/
+ void* ClientThreadProcess(void* pParam)
+ {
+    int sockfd, portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent* server;
+
+    //Grab the port number for the client to bind to
+    portno = portNumber;
+
+    //Attempt to open the socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0)
+    {
+        printf("Error opening socket\n");
+        exit(1);
+    }
+
+    //Check to see if the server exists
+    server = gethostbyname("localhost");
+    if( NULL == server )
+    {
+        printf("Error, no such host\n");
+        exit(1);
+    }
+
+    //Zero out the server address structure
+    bzero( (char*)&serv_addr, sizeof(serv_addr) );
+
+    //Populate server address structure
+    serv_addr.sin_family = AF_INET;
+    bcopy( (char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+
+    //Attempt to connect to the server
+    if( connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
+    {
+        printf("Error connecting to server\n");
+        exit(1);
+    }
+
+    while(1)
+    {
+        //Attempt to write the buffer to the server socket
+        n = write(sockfd, msg, strlen(msg));
+        
+        if(n < 0)
+        {
+            printf("Error writing to socket\n");
+            exit(1);
+        }
+    }
+
+ }
 
 /*******************************************************************************
  * 
@@ -172,7 +292,7 @@ bool validateSocketSend()
  ******************************************************************************/
 bool initializeSockets()
 {
-
+    
 }
 
 /*******************************************************************************
