@@ -53,7 +53,7 @@ static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 
 static int portNumber = 5150;
-static int client_fd;
+static int client_fd = -1;
 
 int                 listenfd_cmd = -1, connfd_cmd = -1;
 struct sockaddr_in  servaddr_cmd, cliaddr_cmd;
@@ -100,6 +100,7 @@ socklen_t           clilen_dat;
     serv_addr.sin_port = htons(portno);
 
     //Attempt to connect to the server
+    printf("Attempting to connect...");
     if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
     {
         printf("Error connecting to server\n");
@@ -209,6 +210,8 @@ void* ServerThreadProcess(void *pParam)
     rc = sem_timedwait( &(pServerToken->semStart), &ts_wait);
 
     //New FD is waiting for a client connection
+    printf("Waiting to accept...\n");
+    sleep(1);
     newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
     if(newsockfd < 0)
     {
