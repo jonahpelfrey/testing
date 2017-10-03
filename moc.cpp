@@ -180,7 +180,7 @@ void* MainThreadProcess(void *pParam)
         //Zero out the buffer for reading
         bzero(buffer, 256);
 
-        sleep(1);
+        usleep(40);
     }
 
 }
@@ -288,7 +288,7 @@ void* ServerThreadProcess(void *pParam)
 
         printf("Here is the message: %s\n", buffer);
 
-        sleep(1);
+        usleep(40);
     }
 
     close(sockfd);
