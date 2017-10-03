@@ -227,7 +227,9 @@ void* ServerThreadProcess(void *pParam)
         int n;
         char buffer[256];
 
+        printf("Pre-read\n");
         n = read(newsockfd, buffer, 255);
+        printf("Post-read\n");
 
         if(n < 0) printf("Error reading from socket\n");
 
