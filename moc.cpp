@@ -211,13 +211,16 @@ void* ServerThreadProcess(void *pParam)
 
     //New FD is waiting for a client connection
     printf("Waiting to accept...\n");
-    sleep(1);
     newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
+    printf("Wait hasn't blocked\n");
+
     if(newsockfd < 0)
     {
         printf("Error on accept\n");
         exit(1);
     }
+
+    printf("Accepted client connection\n");
 
     while( runTest )
     {
