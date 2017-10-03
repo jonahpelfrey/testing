@@ -59,16 +59,16 @@ static int client_fd = -1;
 static bool runServer = true;
 static bool runClient = true;
 
-struct sockaddr_in serv_addr;
-struct hostent* server;
-char* msg = "This is a message from the client\n";
+static char* msg = "|1111111111|\n";
 
 /*******************************************************************************
  * 
  ******************************************************************************/
-void openClientFd()
+void openClientSocket()
 {
     int portno;
+    struct sockaddr_in serv_addr;
+    struct hostent* server;
 
     //Grab the port number for the client to test
     portno = portNumber;
@@ -113,7 +113,7 @@ void* MainThreadProcess(void *pParam)
 {
     int n;
 
-    openClientFd();
+    openClientSocket();
 
 	PTOKEN pMainToken = (PTOKEN)pParam;
 	TIMESPEC ts_wait;
