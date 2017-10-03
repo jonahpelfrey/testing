@@ -121,17 +121,13 @@ void* MainThreadProcess(void *pParam)
 	TIMESPEC ts_sleep = {0*MSEC};
 	int rc = 0;
 
-    if(!initializeClientSocket)
-    {
-        printf("Error initializing client socket\n");
-        exit(1);
-    }
-
 	clock_gettime(CLOCK_REALTIME, &ts_wait);
 	ts_wait.tv_sec += 10;
 	ts_wait.tv_nsec += (0*MSEC);
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
+
+    initializeClientSocket();
 
 }
 
@@ -258,21 +254,14 @@ bool initializeSockets()
  ******************************************************************************/
 void initializeTestThreads()
 {
-
-
 	pMainToken = (PTOKEN)malloc(sizeof(TOKEN));
-	pPerToken = (PTOKEN)malloc(sizeof(TOKEN));
     pServerToken = (PTOKEN)malloc(sizeof(TOKEN));
 
 	sem_init(&pMainToken->semStart, 0, 0);
-	// sem_init(&pPerToken->semStart, 0, 0);
     sem_init(&pServerToken->semStart, 0, 0);
 
-        //pthread_create(&MainThreadId, NULL, MainThreadProcess, (void*)pMainToken);
-	// pthread_create(&PerThreadId, NULL, PerThreadProcess, (void*)pPerToken);
     pthread_create(&ServerThreadId, NULL, ServerThreadProcess, (void*)pServerToken);
-
-
+    pthread_create(&MainThreadId, NULL, MainThreadProcess, (void*)pMainToken);
 }
 
 /*******************************************************************************
@@ -281,10 +270,10 @@ void initializeTestThreads()
 void startTestThreads()
 {
     sem_post( &(pServerToken->semStart) );
+
     sleep(3);
 
-        //sem_post( &(pMainToken->semStart) );
-	// sem_post( &(pPerToken->semStart) );
+    sem_post( &(pMainToken->semStart) );
 }
 
 /*******************************************************************************
