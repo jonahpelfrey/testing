@@ -52,6 +52,7 @@ static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 
 static int portNumber = 5150;
+static int client_fd;
 
 int                 listenfd_cmd = -1, connfd_cmd = -1;
 struct sockaddr_in  servaddr_cmd, cliaddr_cmd;
@@ -225,9 +226,11 @@ void* ServerThreadProcess(void *pParam)
 /*******************************************************************************
  * 
  ******************************************************************************/
- void* ClientThreadProcess(void* pParam)
+ bool intializeClientSocket()
  {
-    int sockfd, portno, n;
+    bool retVal = true;
+
+    int portno, n;
     struct sockaddr_in serv_addr;
     struct hostent* server;
 
@@ -235,11 +238,11 @@ void* ServerThreadProcess(void *pParam)
     portno = portNumber;
 
     //Attempt to open the socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sockfd < 0)
+    client_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(client_fd < 0)
     {
         printf("Error opening socket\n");
-        exit(1);
+        retVal = false;
     }
 
     //Check to see if the server exists
@@ -247,7 +250,7 @@ void* ServerThreadProcess(void *pParam)
     if( NULL == server )
     {
         printf("Error, no such host\n");
-        exit(1);
+        retVal = false;
     }
 
     //Zero out the server address structure
@@ -259,24 +262,13 @@ void* ServerThreadProcess(void *pParam)
     serv_addr.sin_port = htons(portno);
 
     //Attempt to connect to the server
-    if( connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
+    if( connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 )
     {
         printf("Error connecting to server\n");
-        exit(1);
+        retVal = false;
     }
 
-    while(1)
-    {
-        //Attempt to write the buffer to the server socket
-        n = write(sockfd, msg, strlen(msg));
-        
-        if(n < 0)
-        {
-            printf("Error writing to socket\n");
-            exit(1);
-        }
-    }
-
+    return retVal;
  }
 
 /*******************************************************************************
