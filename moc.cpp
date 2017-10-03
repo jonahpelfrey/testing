@@ -54,6 +54,10 @@ static pthread_t ServerThreadId;
 
 static int portNumber = 5150;
 static int client_fd = -1;
+
+static bool runServer = true;
+static bool runClient = true;
+
 struct sockaddr_in serv_addr;
 struct hostent* server;
 char* msg = "This is a message from the client\n";
@@ -111,7 +115,6 @@ void connectToServer()
  ******************************************************************************/
 void* MainThreadProcess(void *pParam)
 {
-    bool runTest = true;
     int n;
 
     connectToServer();
@@ -127,7 +130,7 @@ void* MainThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
 
-    while(1)
+    while(runClient)
     {
         n = write(client_fd, msg, strlen(msg));
         if(n < 0)
@@ -138,6 +141,7 @@ void* MainThreadProcess(void *pParam)
 
         usleep(40);
     }
+    printf("Ending client thread\n");
 
 }
 
@@ -167,8 +171,6 @@ void* PerThreadProcess(void *pParam)
  ******************************************************************************/
 void* ServerThreadProcess(void *pParam)
 {
-    bool runTest = true;
-
     //Thread Params
     PTOKEN pPerToken = (PTOKEN)pParam;
     TIMESPEC ts_wait;
@@ -231,7 +233,7 @@ void* ServerThreadProcess(void *pParam)
 
     printf("Accepted client connection\n");
 
-    while( runTest )
+    while( runServer )
     {
         int n;
         char buffer[256];
@@ -244,6 +246,7 @@ void* ServerThreadProcess(void *pParam)
 
         usleep(40);
     }
+    printf("Ending server thread\n");
 
     close(sockfd);
 }
@@ -324,6 +327,8 @@ main()
         if(0x0a == getchar() )
         {
             printf("End of main loop");
+            runServer = false;
+            runClient = false;
             break;
         }
     }
