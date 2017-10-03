@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <fstream>
 
 #define READ_TIMEOUT_SECS 10
@@ -77,27 +78,6 @@ void* MainThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
 
-    while( runTest )
-    {
-        do
-        {
-            buff = messageQueue.front();
-            sendReturn = sendto( connfd_cmd, buff, (size_t)buff[0], 0,
-                                 (struct sockaddr *)&cliaddr_cmd, clilen_cmd );
-        } while( sendReturn == -1 && isRetryableError( errno ) );
-
-        if( sendReturn < 0 )
-        {
-            printf("MainThreadProcess: | FAILURE | socket returned -1 |");
-        }
-        else
-        {
-            // the send succeeded; take this message off the queue
-            // loop back to send the next one
-            free( buff );
-            messageQueue.pop();
-        }
-    }
 }
 
 
@@ -119,27 +99,6 @@ void* PerThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pPerToken->semStart), &ts_wait);
 
-    while( runTest )
-    {
-        do
-        {
-            buff = messageQueue.front();
-            sendReturn = sendto( connfd_cmd, buff, (size_t)buff[0], 0,
-                                 (struct sockaddr *)&cliaddr_cmd, clilen_cmd );
-        } while( sendReturn == -1 && isRetryableError( errno ) );
-
-        if( sendReturn < 0 )
-        {
-            printf("PerThreadProcess: | FAILURE | socket returned -1 |");
-        }
-        else
-        {
-            // the send succeeded; take this message off the queue
-            // loop back to send the next one
-            free( buff );
-            messageQueue.pop();
-        }
-    }
 }
 
 /*******************************************************************************
