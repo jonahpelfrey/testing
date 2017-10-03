@@ -63,8 +63,8 @@ static int client_fd = -1;
 static bool runServer = true;
 static bool runClient = true;
 
-static const char msgA[16] = "|1111111111111|\n";
-static const char msgB[16] = "|0000000000000|\n";
+static const char msgA[32] = "|1111111111111|\n";
+static const char msgB[32] = "|0000000000000|\n";
 
 static const int MSG_LEN = 16;
 
