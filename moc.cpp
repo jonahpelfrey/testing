@@ -279,6 +279,7 @@ void* ServerThreadProcess(void *pParam)
 
         n = read(newsockfd, buffer, 16);
         memcpy(ServerBuffer[serverBufIndex], buffer, 16);
+        serverBufIndex+=16;
 
         if(n < 0)
         {
