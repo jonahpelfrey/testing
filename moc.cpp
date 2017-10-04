@@ -190,7 +190,7 @@ void* MainThreadProcess(void *pParam)
         usleep(SLEEP_TIME);
     }
 
-    printf("Ending client thread\n");
+    printf("Ending clientA thread\n");
 
 }
 
@@ -212,6 +212,21 @@ void* PerThreadProcess(void *pParam)
 	ts_wait.tv_nsec += (0*MSEC);
 
 	rc = sem_timedwait( &(pPerToken->semStart), &ts_wait);
+
+    while(runTest)
+    {
+        n = write(client_fd, msgB, strlen(msgB));
+
+        if(n < 0)
+        {
+            printf("Error writing to socket\n");
+            exit(1);
+        }
+        MainProcessWrites++;
+        usleep(SLEEP_TIME);
+    }
+
+    printf("Ending clientB thread\n");
 
 }
 
@@ -326,13 +341,16 @@ void* ServerThreadProcess(void *pParam)
 void initializeTestThreads()
 {
 	pMainToken = (PTOKEN)malloc(sizeof(TOKEN));
+    pPerToken = (PTOKEN)malloc(sizeof(TOKEN));
     pServerToken = (PTOKEN)malloc(sizeof(TOKEN));
 
 	sem_init(&pMainToken->semStart, 0, 0);
+    sem_init(&pPerToken->semStart, 0, 0);
     sem_init(&pServerToken->semStart, 0, 0);
 
     pthread_create(&ServerThreadId, NULL, ServerThreadProcess, (void*)pServerToken);
     pthread_create(&MainThreadId, NULL, MainThreadProcess, (void*)pMainToken);
+    pthread_create(&PerThreadId, NULL, PerThreadProcess, (void*)pPerToken);
 }
 
 /*******************************************************************************
@@ -347,6 +365,8 @@ void startTestThreads()
     if( openClientSocket() )
     {
         sem_post( &(pMainToken->semStart) );
+        sleep(1);
+        sem_post( &(pPerToken->semStart) );
     }
     else { printf("Failed to open client socket\n"); }
     
