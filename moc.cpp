@@ -41,10 +41,6 @@ typedef TOKEN* PTOKEN;
  ******************************************************************************/
 static const ULONG MSEC = 1000000;
 
-static BYTE perThreadData[1000];
-static BYTE mainThreadData[1000];
-static BYTE serverThreadData[1000];
-
 static PTOKEN pMainToken;
 static pthread_t MainThreadId;
 static int MainProcessWrites = 0;
@@ -56,19 +52,17 @@ static int PerProcessWrites = 0;
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 static int ServerProcessReads = 0;
-static char ServerBuffer[2048];
+static char ServerBuffer[4096];
 static int serverBufIndex = 0;
 
 static int portNumber = 5150;
 static int client_fd = -1;
 
-static bool runServer = true;
-static bool runClient = true;
+static bool runTest = true;
 
 static const char msgA[17] = "|11111111111111|";
 static const char msgB[17] = "|00000000000000|";
 
-static const int MSG_LEN = 16;
 
 /*******************************************************************************
  * 
@@ -159,23 +153,19 @@ void* MainThreadProcess(void *pParam)
 
 	rc = sem_timedwait( &(pMainToken->semStart), &ts_wait);
 
-    if( openClientSocket() )
+    while(runTest)
     {
-        while(runClient)
-        {
-            n = write(client_fd, msgA, strlen(msgA));
+        n = write(client_fd, msgA, strlen(msgA));
 
-            if(n < 0)
-            {
-                printf("Error writing to socket\n");
-                exit(1);
-            }
-            MainProcessWrites++;
-            usleep(10000);
+        if(n < 0)
+        {
+            printf("Error writing to socket\n");
+            exit(1);
         }
+        MainProcessWrites++;
+        usleep(10000);
     }
 
-    
     printf("Ending client thread\n");
 
 }
@@ -267,13 +257,12 @@ void* ServerThreadProcess(void *pParam)
 
     printf("Accepted client connection\n");
 
-    while( runServer )
+    while( runTest )
     {
         int n;
         char buffer[256];
 
         n = read(newsockfd, buffer, 16);
-
 
         if(n < 0)
         {
@@ -282,21 +271,25 @@ void* ServerThreadProcess(void *pParam)
 
         printf("Here is the message: %s\n", buffer);
 
-        if(serverBufIndex != 2048)
+        if(serverBufIndex < 4096)
         {
             memcpy(&ServerBuffer[serverBufIndex], buffer, strlen(buffer));
             serverBufIndex+=16;
         }
-
 
         printf("Server Buffer: %s\n", ServerBuffer);
 
         ServerProcessReads++;
         usleep(10000);
     }
-    printf("Ending server thread\n");
+
+    printf("Ending server thread...\n");
     printf("Starting validation...\n");
-    validateBuffer();
+    
+    if( validateBuffer() )
+    {
+        printf("TEST PASSED\n");
+    } else { printf("TEST FAILED\n"); }
 
     close(sockfd);
 }
@@ -325,20 +318,18 @@ void startTestThreads()
 
     sleep(3);
 
-    sem_post( &(pMainToken->semStart) );
+    if( openClientSocket() )
+    {
+        sem_post( &(pMainToken->semStart) );
+    }
+    else { printf("Failed to open client socket\n"); }
+    
 }
 
 /*******************************************************************************
  * 
  ******************************************************************************/
-void stopTestThreads()
-{
-
-}
-
-
-int
-main()
+int main()
 {
     initializeTestThreads();
 
@@ -350,16 +341,15 @@ main()
     {
         if(0x0a == getchar() )
         {
-            runServer = false;
-            runClient = false;
+            runTest = false;
             break;
         }
     }
-    sleep(2);
+
+    sleep(1);
+
     printf("End of main thread\n");
 
     return 0;
-
-
 
 }
