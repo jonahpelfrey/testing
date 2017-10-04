@@ -77,6 +77,8 @@ static const int MSG_LEN = 16;
     bool retVal = true;
 
     int totalWrites = MainProcessWrites + PerProcessWrites;
+    printf("Process Writes: %d\n", MainProcessWrites);
+    printf("Server Reads: %d\n", ServerProcessReads);
 
     //Check for missed reads or writes
     if(totalWrites != ServerProcessReads)
@@ -86,12 +88,12 @@ static const int MSG_LEN = 16;
     }
 
     //Check validity of server buffer
-    char dest[16];
-    for(int i = 0; i < 2048; i+=16)
-    {
-        memcpy(dest, &ServerBuffer[i], 16);
-        printf("Dest: %s\n", dest);
-    }
+    // char dest[16];
+    // for(int i = 0; i < 2048; i+=16)
+    // {
+    //     memcpy(dest, &ServerBuffer[i], 16);
+    //     printf("Dest: %s\n", dest);
+    // }
 
     return retVal;
  }
@@ -278,8 +280,6 @@ void* ServerThreadProcess(void *pParam)
         char buffer[256];
 
         n = read(newsockfd, buffer, 16);
-        memcpy(ServerBuffer[serverBufIndex], buffer, 16);
-        serverBufIndex+=16;
 
         if(n < 0)
         {
