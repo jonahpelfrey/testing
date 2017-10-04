@@ -178,7 +178,7 @@ void* MainThreadProcess(void *pParam)
                 exit(1);
             }
             MainProcessWrites++;
-            usleep(40);
+            usleep(40000);
         }
     }
 
@@ -288,7 +288,7 @@ void* ServerThreadProcess(void *pParam)
 
         printf("Here is the message: %s\n", buffer);
         ServerProcessReads++;
-        usleep(40);
+        usleep(40000);
     }
     printf("Ending server thread\n");
     printf("Starting validation...\n");
