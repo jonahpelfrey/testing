@@ -222,7 +222,7 @@ void* PerThreadProcess(void *pParam)
             printf("Error writing to socket\n");
             exit(1);
         }
-        MainProcessWrites++;
+        PerProcessWrites++;
         usleep(SLEEP_TIME);
     }
 
