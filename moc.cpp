@@ -102,6 +102,8 @@ static const char msgB[17] = "|00000000000000|";
             break;
         }
 
+        printf("ServerBuffer: %s\n", tmp);
+
     }
 
     if(retVal) { printf("ALL MESSAGES DELIVERED SUCCESSFULLY\n"); }
