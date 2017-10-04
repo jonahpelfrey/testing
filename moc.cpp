@@ -200,7 +200,7 @@ void* MainThreadProcess(void *pParam)
  ******************************************************************************/
 void* PerThreadProcess(void *pParam)
 {
-    bool runTest = true;
+    int n;
 
 	PTOKEN pPerToken = (PTOKEN)pParam;
 	TIMESPEC ts_wait;
