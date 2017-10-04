@@ -19,6 +19,7 @@
 
 #define READ_TIMEOUT_SECS 10
 #define SLEEP_TIME 10000
+#define BUF_SIZE 16000
 
 using namespace std;
 
@@ -53,7 +54,7 @@ static int PerProcessWrites = 0;
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 static int ServerProcessReads = 0;
-static char ServerBuffer[8192];
+static char ServerBuffer[BUF_SIZE];
 static int serverBufIndex = 0;
 
 static int portNumber = 5150;
@@ -80,13 +81,13 @@ static const char msgB[17] = "|00000000000000|";
     printf("Server Reads: %d\n", ServerProcessReads);
 
     //Check for missed reads or writes
-    if( (totalWrites - 1) != ServerProcessReads )
-    {
-        retVal = false;
-        printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
-    }
+//    if( (totalWrites - 1) != ServerProcessReads )
+//    {
+//        retVal = false;
+//        printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
+//    }
 
-    for(int i = 0; i < 8192; i += 16)
+    for(int i = 0; i < BUF_SIZE; i += 16)
     {
         memset(tmp, '\0', sizeof(tmp));
         strncpy(tmp, &ServerBuffer[i], 16);
@@ -303,17 +304,17 @@ void* ServerThreadProcess(void *pParam)
         int n;
         char buffer[256];
 
-        n = read(newsockfd, buffer, 16);
+        n = read(newsockfd, buffer, strlen(buffer));
 
         if(n < 0)
         {
             printf("Error reading from socket\n");
         } 
 
-        if(serverBufIndex < 8192)
+        if(serverBufIndex < BUF_SIZE)
         {
             memcpy(&ServerBuffer[serverBufIndex], buffer, strlen(buffer));
-            serverBufIndex+=16;
+            serverBufIndex+=strlen(buffer);
             ServerProcessReads++;
         }
         else
