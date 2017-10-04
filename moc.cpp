@@ -18,6 +18,7 @@
 #include <fstream>
 
 #define READ_TIMEOUT_SECS 10
+#define SLEEP_TIME 10000
 
 using namespace std;
 
@@ -72,6 +73,7 @@ static const char msgB[17] = "|00000000000000|";
     bool retVal = true;
     int checkA = 0;
     int checkB = 0;
+    char tmp[17];
 
     int totalWrites = MainProcessWrites + PerProcessWrites;
     printf("Process Writes: %d\n", MainProcessWrites);
@@ -84,11 +86,11 @@ static const char msgB[17] = "|00000000000000|";
         printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
     }
 
-    char tmp[17];
     for(int i = 0; i < 8192; i += 16)
     {
         memset(tmp, '\0', sizeof(tmp));
         strncpy(tmp, &ServerBuffer[i], 16);
+
         checkA = strcmp(tmp, msgA);
         checkB = strcmp(tmp, msgB);
 
@@ -102,6 +104,7 @@ static const char msgB[17] = "|00000000000000|";
 
     }
 
+    if(retVal) { printf("ALL MESSAGES DELIVERED SUCCESSFULLY\n"); }
 
     return retVal;
  }
@@ -152,7 +155,7 @@ bool openClientSocket()
         retVal = false;
     }
 
-    printf("Connected to server\n");
+    printf("connected to server\n");
 
     return retVal;
 }
@@ -184,7 +187,7 @@ void* MainThreadProcess(void *pParam)
             exit(1);
         }
         MainProcessWrites++;
-        usleep(10000);
+        usleep(SLEEP_TIME);
     }
 
     printf("Ending client thread\n");
@@ -301,7 +304,7 @@ void* ServerThreadProcess(void *pParam)
             runTest = false;
         }
 
-        usleep(10000);
+        usleep(SLEEP_TIME);
     }
 
 
