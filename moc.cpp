@@ -100,7 +100,6 @@ static const char msgB[17] = "|00000000000000|";
             retVal = false;
             printf("Error Index: %d\n", i);
             printf("Corrupted Message: %s\n", tmp);
-            break;
         }
 
         printf("ServerBuffer: %s\n", tmp);
