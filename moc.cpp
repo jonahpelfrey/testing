@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
@@ -64,8 +65,8 @@ static int client_fd = -1;
 static bool runServer = true;
 static bool runClient = true;
 
-static const char msgA[16] = "|1111111111111|";
-static const char msgB[16] = "|0000000000000|";
+static const char msgA[17] = "|11111111111111|";
+static const char msgB[17] = "|00000000000000|";
 
 static const int MSG_LEN = 16;
 
@@ -281,12 +282,23 @@ void* ServerThreadProcess(void *pParam)
 
         n = read(newsockfd, buffer, 16);
 
+
         if(n < 0)
         {
             printf("Error reading from socket\n");
         } 
 
         printf("Here is the message: %s\n", buffer);
+
+        if(serverBufIndex != 2048)
+        {
+            memcpy(&ServerBuffer[serverBufIndex], buffer, strlen(buffer));
+            serverBufIndex+=16;
+        }
+
+
+        printf("Server Buffer: %s\n", ServerBuffer);
+
         ServerProcessReads++;
         usleep(40000);
     }
