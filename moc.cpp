@@ -18,7 +18,7 @@
 #include <fstream>
 
 #define READ_TIMEOUT_SECS 10
-#define SLEEP_TIME 10000
+#define SLEEP_TIME 10
 #define BUF_SIZE 16000
 
 using namespace std;
@@ -62,8 +62,8 @@ static int client_fd = -1;
 
 static bool runTest = true;
 
-static const char msgA[17] = "|11111111111111|";
-static const char msgB[17] = "|00000000000000|";
+static const char msgA[17] = "|AAAAAAAAAAAAAA|";
+static const char msgB[17] = "|BBBBBBBBBBBBBB|";
 
 
 /*******************************************************************************
@@ -303,7 +303,7 @@ void* ServerThreadProcess(void *pParam)
         int n;
         char buffer[256];
 
-        n = read(newsockfd, buffer, strlen(buffer));
+        n = read(newsockfd, buffer, 16);
 
         if(n < 0)
         {
@@ -326,7 +326,7 @@ void* ServerThreadProcess(void *pParam)
 
 
     printf("Starting validation...\n");
-    
+
     if( validateBuffer() )
     {
         printf("TEST PASSED\n");
