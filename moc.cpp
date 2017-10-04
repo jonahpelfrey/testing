@@ -80,13 +80,6 @@ static const char msgB[17] = "|BBBBBBBBBBBBBB|";
     printf("Process Writes: %d\n", MainProcessWrites);
     printf("Server Reads: %d\n", ServerProcessReads);
 
-    //Check for missed reads or writes
-//    if( (totalWrites - 1) != ServerProcessReads )
-//    {
-//        retVal = false;
-//        printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
-//    }
-
     for(int i = 0; i < BUF_SIZE; i += 16)
     {
         memset(tmp, '\0', sizeof(tmp));
