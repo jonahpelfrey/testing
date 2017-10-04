@@ -88,14 +88,6 @@ static const int MSG_LEN = 16;
         printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
     }
 
-    //Check validity of server buffer
-    // char dest[16];
-    // for(int i = 0; i < 2048; i+=16)
-    // {
-    //     memcpy(dest, &ServerBuffer[i], 16);
-    //     printf("Dest: %s\n", dest);
-    // }
-
     return retVal;
  }
 
@@ -179,7 +171,7 @@ void* MainThreadProcess(void *pParam)
                 exit(1);
             }
             MainProcessWrites++;
-            usleep(40000);
+            usleep(10000);
         }
     }
 
@@ -300,7 +292,7 @@ void* ServerThreadProcess(void *pParam)
         printf("Server Buffer: %s\n", ServerBuffer);
 
         ServerProcessReads++;
-        usleep(40000);
+        usleep(10000);
     }
     printf("Ending server thread\n");
     printf("Starting validation...\n");
