@@ -52,7 +52,7 @@ static int PerProcessWrites = 0;
 static PTOKEN pServerToken;
 static pthread_t ServerThreadId;
 static int ServerProcessReads = 0;
-static char ServerBuffer[4096];
+static char ServerBuffer[8192];
 static int serverBufIndex = 0;
 
 static int portNumber = 5150;
@@ -76,7 +76,7 @@ static const char msgB[17] = "|00000000000000|";
     printf("Server Reads: %d\n", ServerProcessReads);
 
     //Check for missed reads or writes
-    if(totalWrites != ServerProcessReads)
+    if( (totalWrites - 1) != ServerProcessReads )
     {
         retVal = false;
         printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
@@ -269,27 +269,29 @@ void* ServerThreadProcess(void *pParam)
             printf("Error reading from socket\n");
         } 
 
-        printf("Here is the message: %s\n", buffer);
-
-        if(serverBufIndex < 4096)
+        if(serverBufIndex < 8192)
         {
             memcpy(&ServerBuffer[serverBufIndex], buffer, strlen(buffer));
             serverBufIndex+=16;
+            ServerProcessReads++;
+        }
+        else
+        {
+            runTest = false;
         }
 
-        printf("Server Buffer: %s\n", ServerBuffer);
-
-        ServerProcessReads++;
         usleep(10000);
     }
 
-    printf("Ending server thread...\n");
+
     printf("Starting validation...\n");
     
     if( validateBuffer() )
     {
         printf("TEST PASSED\n");
     } else { printf("TEST FAILED\n"); }
+
+    printf("Ending server thread...\n");
 
     close(sockfd);
 }
