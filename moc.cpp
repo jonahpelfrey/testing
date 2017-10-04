@@ -70,6 +70,8 @@ static const char msgB[17] = "|00000000000000|";
  bool validateBuffer()
  {
     bool retVal = true;
+    int checkA = 0;
+    int checkB = 0;
 
     int totalWrites = MainProcessWrites + PerProcessWrites;
     printf("Process Writes: %d\n", MainProcessWrites);
@@ -81,6 +83,25 @@ static const char msgB[17] = "|00000000000000|";
         retVal = false;
         printf("ERROR: Total Writes = %d | Total Reads = %d\n", totalWrites, ServerProcessReads);
     }
+
+    char tmp[17];
+    for(int i = 0; i < 8192; i += 16)
+    {
+        memset(tmp, '\0', sizeof(tmp));
+        strncpy(tmp, &ServerBuffer[i], 16);
+        checkA = strcmp(tmp, msgA);
+        checkB = strcmp(tmp, msgB);
+
+        if(checkA != 0 && checkB != 0)
+        {
+            retVal = false;
+            printf("Error Index: %d\n", i);
+            printf("Corrupted Message: %s\n", tmp);
+            break;
+        }
+
+    }
+
 
     return retVal;
  }
