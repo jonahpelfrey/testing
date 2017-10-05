@@ -105,7 +105,7 @@ static const char msgB[17] = "|BBBBBBBBBBBBBB|";
  }
 
 /*******************************************************************************
- * 
+ * Open the global fd for the client socket connection
  ******************************************************************************/
 bool openClientSocket()
 {
@@ -186,7 +186,6 @@ void* MainThreadProcess(void *pParam)
     }
 
     printf("Ending clientA thread\n");
-
 }
 
 
@@ -222,11 +221,10 @@ void* PerThreadProcess(void *pParam)
     }
 
     printf("Ending clientB thread\n");
-
 }
 
 /*******************************************************************************
- * 
+ * Thread process to hold the server end of the socket connection
  ******************************************************************************/
 void* ServerThreadProcess(void *pParam)
 {
@@ -317,7 +315,6 @@ void* ServerThreadProcess(void *pParam)
         usleep(SLEEP_TIME);
     }
 
-
     printf("Starting validation...\n");
 
     if( validateBuffer() )
@@ -331,7 +328,7 @@ void* ServerThreadProcess(void *pParam)
 }
 
 /*******************************************************************************
- * 
+ * Initialize the variables associated with each thread
  ******************************************************************************/
 void initializeTestThreads()
 {
@@ -349,7 +346,7 @@ void initializeTestThreads()
 }
 
 /*******************************************************************************
- * 
+ * Post the semaphores to start the threads in sequence
  ******************************************************************************/
 void startTestThreads()
 {
@@ -368,7 +365,17 @@ void startTestThreads()
 }
 
 /*******************************************************************************
- * 
+ * Clean up semaphores
+ ******************************************************************************/
+void stopTestThreads()
+{
+    sem_destroy(&pMainToken->semStart);
+    sem_destroy(&pServerToken->semStart);
+    sem_destroy(&pPerToken->semStart);
+}
+
+/*******************************************************************************
+ * Main functino to run test
  ******************************************************************************/
 int main()
 {

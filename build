@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "Building executable..."
-g++ -o moc moc.cpp -Wall -lpthread
+g++ -o moc socktest.cpp -Wall -lpthread
