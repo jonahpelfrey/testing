@@ -25,7 +25,7 @@ timespec diff(timespec start, timespec end)
 
 	if( (end.tv_nsec - start.tv_nsec) < 0)
 	{
-		temp.tv_sec = end.tv_sec - start.tv_sec - 1
+		temp.tv_sec = end.tv_sec - start.tv_sec - 1;
 		temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
 	}
 	else
@@ -50,7 +50,7 @@ int main()
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &post);
 
-	cout << diff(pre, post).tv_sec << ":" << diff(pre, post).tv_nsec << endl;
+	cout << diff(pre, post).tv_sec << ":" << (diff(pre, post).tv_nsec) * 1000000 << "ms" << endl;
 
 	return 0;
 }
