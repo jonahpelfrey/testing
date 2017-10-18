@@ -31,6 +31,7 @@ bool gotSocketsAtLeastOnce = false;
 bool readMessageSuccess = false;
 bool readMessageLength = false;
 bool socketHandlesWereSet = false;
+bool socketDidHaveError = false;
 
 void runMain()
 {
@@ -86,7 +87,7 @@ void runMain()
                     // and we get a new socket. Chances are the code will never
                     // execute this branch, but we are handling whatever error might
                     // occur.
-                    socketError = true;
+                    socketDidHaveError = true;
                 }
                 else
                 {
@@ -231,9 +232,10 @@ bool test5()
 
     if(dataSocket != -1)        { return false; }
     if(commandSocket != -1)     { return false; }
-    if(!socketError)            { return false; }
+    if(socketError)             { return false; }
     if(socketHandlesValid)      { return false; }
     if(!socketHandlesWereSet)   { return false; }
+    if(!socketDidHaveError)     { return false; }
 
     return true;
 }
