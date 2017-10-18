@@ -364,7 +364,31 @@ void test5()
     if(!socketHandlesWereSet)   { return false; }
 }
 
-void test6()
+int
+main()
 {
+    if( test1() ) { printf("Test #1: PASSED\n"); }
+    else { printf("Test #1: FAILED\n"); }
 
+    resetGlobals();
+
+    if( test2() ) { printf("Test #2: PASSED\n"); }
+    else { printf("Test #2: FAILED\n"); }
+
+    resetGlobals();
+
+    if( test3() ) { printf("Test #3: PASSED\n"); }
+    else { printf("Test #3: FAILED\n"); }
+
+    resetGlobals();
+
+    if( test4() ) { printf("Test #4: PASSED\n"); }
+    else { printf("Test #4: FAILED\n"); }
+
+    resetGlobals();
+
+    if( test5() ) { printf("Test #5: PASSED\n"); }
+    else { printf("Test #5: FAILED"); }
+
+    return 0;
 }
