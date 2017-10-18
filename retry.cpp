@@ -324,7 +324,7 @@ bool test3()
     return true;
 }
 
-void test4()
+bool test4()
 {
     mainIsRunning = true;
     socketError = false;
@@ -342,10 +342,10 @@ void test4()
     if(socketHandlesValid)      { return false; }
     if(!socketHandlesWereSet)   { return false; }
 
-
+    return true;
 }
 
-void test5()
+bool test5()
 {
     mainIsRunning = true;
     socketError = false;
@@ -362,6 +362,8 @@ void test5()
     if(!socketError)            { return false; }
     if(socketHandlesValid)      { return false; }
     if(!socketHandlesWereSet)   { return false; }
+
+    return true;
 }
 
 int

@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "Building executable..."
-g++ -o st socktest.cpp -Wall -lpthread
+g++ -o retry retry.cpp -Wall -lpthread
