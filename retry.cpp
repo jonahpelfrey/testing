@@ -221,6 +221,8 @@ void runMain()
                     // we got the whole message - process it
                     
                 }
+
+                mainIsRunning = false;
             }
             else 
             {
@@ -324,12 +326,42 @@ bool test3()
 
 void test4()
 {
+    mainIsRunning = true;
+    socketError = false;
+    openConnections = true;
+    socketMutexIsLocked = true;
+    socketHandlesValid = false;
+    readMessageLength = true;
+    readMessageSuccess = true;
+
+    runMain();
+
+    if(dataSocket != -1)        { return false; }
+    if(commandSocket != -1)     { return false; }
+    if(socketError)             { return false; }
+    if(socketHandlesValid)      { return false; }
+    if(!socketHandlesWereSet)   { return false; }
+
 
 }
 
 void test5()
 {
+    mainIsRunning = true;
+    socketError = false;
+    openConnections = true;
+    socketMutexIsLocked = true;
+    socketHandlesValid = false;
+    readMessageLength = true;
+    readMessageSuccess = false;
 
+    runMain();
+
+    if(dataSocket != -1)        { return false; }
+    if(commandSocket != -1)     { return false; }
+    if(!socketError)            { return false; }
+    if(socketHandlesValid)      { return false; }
+    if(!socketHandlesWereSet)   { return false; }
 }
 
 void test6()
