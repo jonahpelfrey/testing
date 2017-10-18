@@ -156,22 +156,25 @@ void mainLoop()
     bool mainIsRunning = false;
     bool socketError = false;
     bool socketMutexIsLocked = false;
+    bool socketHandlesValid = false;
+    bool didOpenConnections = false;
+    bool gotSocketsAtLeastOnce = false;
 
     while( mainIsRunning )
     {
-        // open the cmd and dat sockets.
+        // open the command and data sockets.
         if( !socketError )
         {
-            if( !openConnections() ) 
+            if( !didOpenConnections ) 
             {
                 usleep( 500000 );
                 continue;    // just keep trying indefinitely, every 0.5 secs
             }
             else
             {
-                if( socketMutexIsLocked )    // always check for any lock error
+                if( socketMutexIsLocked )
                 {
-                    gotSocketsAtLeastOnce = true;   // used in cmdSocketSend()
+                    gotSocketsAtLeastOnce = true;
                     socketHandlesValid = true;
                     socketMutexIsLocked = false;
                 }
@@ -194,10 +197,7 @@ void mainLoop()
                                    &socketError ) ) // output, non-retryable err
             {
                 // read the rest of the message into netCmdInput[]
-                if( !readSocketMessage( inLength,
-                                        connfd_cmd,
-                                        &netCmdInput[1],
-                                        SOCKET_BUFFSIZE-1 ) )
+                if( !readSocketMessage() )
                 {
                     // Since we did read the first byte of a message, the 'length'
                     // byte, if we don't get the rest of the message pretty quickly
@@ -214,8 +214,7 @@ void mainLoop()
                 else
                 {
                     // we got the whole message - process it
-                    processMessage( inLength,
-                                    netCmdInput );
+                    
                 }
             }
         } // while( main_running && !socketError )
@@ -229,31 +228,19 @@ void mainLoop()
             socketMutexIsLocked = false;
         }
 
-        // wait until any call to cmdSocketSend() or datSocketSend() is done
-        sendingTimer.StartTimer();
-        elapsedSecs = 0;
-        while( sendingOnSocket &&
-               elapsedSecs < MAX_SOCKET_TIMEOUT_MINUTES * SECONDS_PER_MINUTE )
-        {
-            usleep( 10000 ); // sleep 10 milliseconds
-            sendingTimer.ElapsedTimeSecs( &elapsedSecs );
-        }
-
         // Close current sockets
         if( commandSocket >= 0 )
         {
-            close( connfd_cmd );
-            connfd_cmd = -1;
+            //close command socket
+            commandSocket = -1;
         }
         if( dataSocket >= 0 )
         {
-            close( connfd_dat );
-            connfd_dat = -1;
+            //close data socket
+            dataSocket = -1;
         }
 
         socketError = false;
-
-        printf( "Sockets Closed.\n" );
 
     } // while( main_running )
 }
@@ -276,4 +263,14 @@ void test3()
 void test4()
 {
 
+}
+
+void test5()
+{
+
+}
+
+void test6()
+{
+    
 }
