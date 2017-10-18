@@ -164,7 +164,7 @@ bool test2()
 {
     mainIsRunning = true;
     socketError = false;
-    openConnections = false;
+    didOpenConnections = false;
     socketHandlesValid = true;
 
     runMain();
@@ -180,7 +180,7 @@ bool test3()
 {
     mainIsRunning = true;
     socketError = false;
-    openConnections = true;
+    didOpenConnections = true;
     socketMutexIsLocked = true;
     socketHandlesValid = false;
     readMessageLength = false;
@@ -200,7 +200,7 @@ bool test4()
 {
     mainIsRunning = true;
     socketError = false;
-    openConnections = true;
+    didOpenConnections = true;
     socketMutexIsLocked = true;
     socketHandlesValid = false;
     readMessageLength = true;
@@ -221,7 +221,7 @@ bool test5()
 {
     mainIsRunning = true;
     socketError = false;
-    openConnections = true;
+    didOpenConnections = true;
     socketMutexIsLocked = true;
     socketHandlesValid = false;
     readMessageLength = true;
