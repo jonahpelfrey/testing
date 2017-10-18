@@ -19,7 +19,18 @@
 
 using namespace std;
 
-
+//GLOBALS
+int commandSocket = 0;
+int dataSocket = 0;
+bool mainIsRunning = false;
+bool socketError = false;
+bool socketMutexIsLocked = false;
+bool socketHandlesValid = false;
+bool didOpenConnections = false;
+bool gotSocketsAtLeastOnce = false;
+bool readMessageSuccess = false;
+bool readMessageLength = false;
+bool socketHandlesWereSet = false;
 
 /*******************************************************************************
  *
@@ -149,16 +160,8 @@ bool openConnections()
     return retval;
 }
 
-void mainLoop()
+void runMain()
 {
-    int commandSocket = 0;
-    int dataSocket = 0;
-    bool mainIsRunning = false;
-    bool socketError = false;
-    bool socketMutexIsLocked = false;
-    bool socketHandlesValid = false;
-    bool didOpenConnections = false;
-    bool gotSocketsAtLeastOnce = false;
 
     while( mainIsRunning )
     {
@@ -167,16 +170,18 @@ void mainLoop()
         {
             if( !didOpenConnections ) 
             {
-                usleep( 500000 );
-                continue;    // just keep trying indefinitely, every 0.5 secs
+                mainIsRunning = false;
+                continue;
             }
             else
             {
                 if( socketMutexIsLocked )
                 {
+                    dataSocket = 1;
+                    commandSocket = 1;
+                    socketHandlesWereSet = true;
                     gotSocketsAtLeastOnce = true;
                     socketHandlesValid = true;
-                    socketMutexIsLocked = false;
                 }
             }
         }
@@ -191,13 +196,13 @@ void mainLoop()
             // read. It will return 'false' with socketError=true if there is
             // non-retryable error; then the inner loop exits, the socket handles
             // are closed, and the outer loop reopens the socket.
-            if( readMessageLength( connfd_cmd,
-                                   netCmdInput,
-                                   &inLength,       // output, remaining to read
-                                   &socketError ) ) // output, non-retryable err
+            if( readMessageLength ) // output, non-retryable err
             {
+                //Potential change on value of socket error?
+
+
                 // read the rest of the message into netCmdInput[]
-                if( !readSocketMessage() )
+                if( !readMessageSuccess )
                 {
                     // Since we did read the first byte of a message, the 'length'
                     // byte, if we don't get the rest of the message pretty quickly
@@ -217,6 +222,11 @@ void mainLoop()
                     
                 }
             }
+            else 
+            {
+                mainIsRunning = false;
+            }
+
         } // while( main_running && !socketError )
 
         // We always have to close the socket handles if we get here.
@@ -225,7 +235,6 @@ void mainLoop()
         if( socketMutexIsLocked )
         {
             socketHandlesValid = false;
-            socketMutexIsLocked = false;
         }
 
         // Close current sockets
@@ -241,23 +250,76 @@ void mainLoop()
         }
 
         socketError = false;
+        mainIsRunning = false;
 
     } // while( main_running )
 }
 
-void test1()
+void resetGlobals()
 {
-
+    commandSocket = 0;
+    dataSocket = 0;
+    mainIsRunning = false;
+    socketError = false;
+    socketMutexIsLocked = false;
+    socketHandlesValid = false;
+    didOpenConnections = false;
+    gotSocketsAtLeastOnce = false;
+    readMessageSuccess = false;
+    readMessageLength = false;
+    socketHandlesWereSet = false;
 }
 
-void test2()
+bool test1()
 {
+    mainIsRunning = true;
+    socketError = true;
+    socketMutexIsLocked = true;
 
+    runMain();
+
+    if(socketError)             { return false; }
+    if(!socketMutexIsLocked)    { return false; }
+    if(dataSocket != -1)        { return false; }
+    if(commandSocket != -1)     { return false; }
+
+    return true;
 }
 
-void test3()
+bool test2()
 {
+    mainIsRunning = true;
+    socketError = false;
+    openConnections = false;
+    socketHandlesValid = true;
 
+    runMain();
+
+    if(dataSocket != 0)         { return false; }
+    if(commandSocket != 0)      { return false; }
+    if(!socketHandlesValid)     { return false; }
+
+    return true;
+}
+
+bool test3()
+{
+    mainIsRunning = true;
+    socketError = false;
+    openConnections = true;
+    socketMutexIsLocked = true;
+    socketHandlesValid = false;
+    readMessageLength = false;
+
+    runMain();
+
+    if(dataSocket != -1)        { return false; }
+    if(commandSocket != -1)     { return false; }
+    if(socketError)             { return false; }
+    if(socketHandlesValid)      { return false; }
+    if(!socketHandlesWereSet)   { return false; }
+
+    return true;
 }
 
 void test4()
@@ -272,5 +334,5 @@ void test5()
 
 void test6()
 {
-    
+
 }
